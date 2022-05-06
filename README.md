@@ -1,1 +1,3 @@
-# public-examples
+# Supplemental Examples for CSCI 1710
+
+
