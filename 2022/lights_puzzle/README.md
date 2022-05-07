@@ -4,3 +4,8 @@ Many video games contain some variation of a puzzle involving lights and switche
 
 This is an attempt to model a puzzle like that, and includes an example visualization that uses Sterling's script view with temporal mode. See the `lights.js` file for visualizing using Sterling's `instances` variable.
 
+## What It Looks Like
+
+Here's a puzzle trace visualized using this script:
+
+![Trace visualization](example.png)
