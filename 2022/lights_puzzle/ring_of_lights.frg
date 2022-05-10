@@ -27,7 +27,10 @@ pred solved {
   Lit = Light
 }
 pred init {
-    -- no constraints (put the puzzle to solve here)
+    -- ONE specific init state, so we can sketch how to exclude loopback 
+    --   to the very beginning
+    --no Lit
+    --Unlit = Light
 }
 
 pred flip[switch: Light] {
@@ -53,5 +56,9 @@ run {
         
     }
     eventually solved
+
+    -- Loopback can't be to the beginning
+    --next_state { always { some Lit }}    
+    --next_state { some Lit }
 } 
 for exactly 5 Light
