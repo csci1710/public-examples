@@ -22,7 +22,7 @@ sig Atom {}
 -- existing and containing the empty set. But we can't write that in Forge as of November 2022. 
 -- Instead, separate into two fields:
 sig PartialInst {    
-    atoms: set Sig -> Atom
+    atoms: set Sig -> Atom,
     isBounded: set Sig
 }
 
@@ -38,7 +38,7 @@ one sig Run {
     scope: one Scope,
 
     -- The upper bounds of the given partial instance, if present
-    partialUpper: one PartialInst
+    partialUpper: one PartialInst,
     -- The lower bounds of the given partial instance, if present    
     partialLower: one PartialInst
 }
@@ -51,7 +51,7 @@ pred wellformedRun {
         -- numeric bounds are always >= 0
         all s: Sig | some r.numeric[s] implies r.numeric[s] >= 0
         -- exact numeric bounds are numeric
-        all s: Sig | s in r.isExact implies some r.numeric[s]
+        all s: Sig | s in r.scope.exact implies some r.numeric[s]
         -- a run either has both kinds of bounds or neither    
         some r.partialUpper iff some r.partialLower    
     }
@@ -113,7 +113,7 @@ pred correctness[r: Run, kb: KodkodBounds] {
         -- If a sig has been scoped in the run, that scope is matched in the upper-bound size
         all s: Sig | some r.numeric[s] implies r.numeric[s] = #kb.upper[s]
         -- If a sig is exact-scoped in the run, that scope is matched in the lower-bound size
-        all s: Sig | s in r.isExact implies r.numeric[s] = #kb.lower[s]
+        all s: Sig | s in r.scope.exact implies r.numeric[s] = #kb.lower[s]
 
         -- Upper bounds are supersets of lower bounds for all sigs
         all s: Sig | kb.lower[s] in kb.upper[s] 
