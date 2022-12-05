@@ -23,7 +23,9 @@
     #:preds [trace]
     #:scope ([Board 9] 
              [Index 3]
-             [Player 2]))
+             [Player 2])
+    ; You can use an `inst` from the .frg file here.
+    #:bounds optimizer)
 
 ; Now the identifier "my-run" can be used to generate results. These
 ; are embodied by a lazily-expanded tree where nodes are either instances

@@ -1,6 +1,12 @@
-#lang forge/bsl
--- Forge roughly approximates Alloy...
--- ...and Froglet (forge/bsl) is a language level for Forge
+#lang forge
+
+/*
+  Tic-tac-toe example model. 
+  Meant to illustrate how to serialize Forge instance output.
+  
+  (This could be a forge/bsl model, except that we need + to describe
+   the partial instance example.)
+*/
 
 abstract sig Player {}
 one sig X, O extends Player {} 
@@ -15,11 +21,15 @@ sig Board {
     places: pfunc Index -> Index -> Player
 }
 
-pred xturn[brd: Board] {
-  #brd.places.X = #brd.places.O  
+fun countPiece[brd: Board, p: Player]: Int {
+  #{r,c: Index | brd.places[r][c] = p}
+}
+
+pred xturn[b: Board] {
+  countPiece[b, X] = countPiece[b, O]
 } 
 pred oturn[b: Board] {
-  subtract[#b.places.X,1] = #b.places.O
+  subtract[countPiece[b, X],1] = countPiece[b, O]
 }
 
 pred winH[b: Board, p: Player] {
@@ -81,10 +91,26 @@ pred trace {
 
 --------------------
 
+option verbose 3
 run {
     trace
 	-- end in a winning board for X
     some winningb: Board | no Trace.next[winningb] and winning[winningb, X]
 } for 9 Board, 3 Index, 2 Player for {next is linear}
 
-
+-- Example instance to illustrate using a partial instance in forge/core
+-- The backtick is used to indicate an _atom_, rather than a relation.
+inst optimizer {
+  -- Here are the _exact_ contents of the Board and Trace sigs
+  Board = `Board0 + `Board1 + `Board2 + 
+          `Board3 + `Board4 + `Board5 + 
+          `Board6 + `Board7 + `Board8
+  Trace = `Trace0 
+  -- `Board0 is the first in the trace
+  first = `Trace0 -> `Board0
+  -- and next behaves like we want it to
+  next = `Trace0 -> (
+           `Board0->`Board1 + `Board1->`Board2 + `Board2->`Board3 +
+           `Board3->`Board4 + `Board4->`Board5 + `Board5->`Board6 +
+           `Board6->`Board7 + `Board7->`Board8)
+}
