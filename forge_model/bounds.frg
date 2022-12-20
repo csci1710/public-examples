@@ -4,6 +4,9 @@
     Model of how numeric bounds and partial instances get translated to partial-instance bounds in Forge
     For now, the model is restricted to only _Sigs_, not also fields. We're also only concerned with explicit
     partial instances, not arbitrary formulas (as in Alcino's unpublished work).
+
+    - omitted: `one` sigs and their effect on bounds
+    - omitted: `in` subset sigs (not supported in Forge, anyway)
 */
 
 abstract sig Modifier {}
@@ -33,6 +36,10 @@ sig Scope {
     numeric: pfunc Sig -> Int
 }
 
+fun DEFAULT_SCOPE: Int { 
+    3
+}
+
 -- Assumption: all Sigs are involved in the run
 one sig Run {
     scope: one Scope,
@@ -43,15 +50,18 @@ one sig Run {
     partialLower: one PartialInst
 }
 
-pred wellformedRun {
+pred wellformed {
     -- no cycles in the child relation
     all s: Sig | not reachable[s, s, children]
 
-    all r: Run | {
+    all sc: Scope | {
         -- numeric bounds are always >= 0
-        all s: Sig | some r.numeric[s] implies r.numeric[s] >= 0
+        all s: Sig | some sc.numeric[s] implies sc.numeric[s] >= 0
         -- exact numeric bounds are numeric
-        all s: Sig | s in r.scope.exact implies some r.numeric[s]
+        all s: Sig | s in sc.exact implies some sc.numeric[s]
+    }
+
+    all r: Run | {        
         -- a run either has both kinds of bounds or neither    
         some r.partialUpper iff some r.partialLower    
     }
@@ -65,9 +75,7 @@ pred wellformedRun {
 
 -- Produced by algorithm
 abstract sig KodkodBounds {}
-lone sig ErrorBounds extends KodkodBounds {
-    conflict: set Sig
-}
+lone sig ErrorBounds extends KodkodBounds {}
 lone sig CompleteBounds extends KodkodBounds {
     upper: set Sig -> Atom,    
     lower: set Sig -> Atom 
@@ -76,6 +84,10 @@ lone sig CompleteBounds extends KodkodBounds {
 -- Is this run "good", in that it should be able to lead to a correct kodkod bound?
 pred goodRun[r: Run] {
 
+}
+
+test expect {
+    vacuityCheckWellformed: {wellformed} is sat 
 }
 
 ---------------------------------------------------------------------------------------------------
@@ -93,8 +105,83 @@ pred goodRun[r: Run] {
 --    * "abstract" sigs add nothing
 --    * all other sigs add the difference only to upper bounds
 
+pred totalizedScope[partial: Scope, total: Scope] {
+    -- "fake recursion" trick; relies on tree-shaped sig inheritance
+    all s: Sig | {
+        no s.children => {
+            -- Leaf sig: either give the default, or use partial's given value
+            some partial.numeric[s] => {
+                total.numeric[s] = partial.numeric[s]
+                s in total.exact iff s in partial.exact 
+            } else {
+                total.numeric[s] = DEFAULT_SCOPE
+                s not in total.exact
+            }
+        } else {
+            -- Parent sig: 
+            some partial.numeric[s] => {
+                total.numeric[s] = partial.numeric[s]
+                s in total.exact iff s in partial.exact 
+                -- caveat: need to not be exceeded by sum of children, or fail
+                total.numeric[s] < (sum child : s.children | {total.numeric[child]})
+            } else {
+                -- sum of children
+                total.numeric[s] = (sum child : s.children | {total.numeric[child]})
+                s not in total.exact 
+            }
+        }
+    }
+}
+
+pred extendScopeExampleStrict {
+    wellformed 
+    some s: Sig | { 
+        #s.children > 1 
+        all ch : s.children | Run.scope.numeric[ch] > 0
+    } 
+    some s: Sig | no s.children and Run.scope.numeric[s] > 0
+    some r: Run, totalScope: Scope | {
+        totalScope.numeric != r.scope.numeric -- diff numeric scopes
+        totalizedScope[r.scope, totalScope]
+    }
+}
+
+pred prop_extensionIsConsistent {
+    wellformed implies {
+        all totalScope : Scope | {
+            totalizedScope[Run.scope, totalScope] implies {
+                all s: Sig | {
+                    some totalScope.numeric[s]
+                    some s.children => 
+                        totalScope.numeric[s] <= (sum ch: s.children | {totalScope.numeric[ch]})
+                } -- end all Sig
+            } -- end consequent (totalizedScope implies...)
+        } -- end all Scope
+    } -- end consequent (wellformed implies...)        
+}
+
+test expect {
+    scopeExtensionSat: {         
+        extendScopeExampleStrict         
+    } is sat
+
+    scopeExtensionConsistent: {
+        prop_extensionIsConsistent
+    } is theorem
+    -- TODO: error message if omitting "is theorem" pretty bad -- parser error on RIGHT-CURLY-TOK
+}
+
+
+--run {extendScopeExampleStrict}
+--run {not prop_extensionIsConsistent}
+
 pred generateKodkod[r: Run, kb: KodkodBounds] {
-    
+    some totalScope : Scope | {
+        totalizedScope[r.scope, totalScope]
+        --leaves[r, kb]
+    } 
+    -- if no such scope exists, error
+    iff not kb in ErrorBounds
 }
 
 ---------------------------------------------------------------------------------------------------
