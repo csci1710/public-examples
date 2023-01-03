@@ -29,7 +29,7 @@ sig Binary extends Formula {
 fun subformulas[fmla: Formula]: set Formula {
     fmla.^(sub + left + right)
 }
-pred wellformed {
+pred wellformed_formulas {
     all f: Formula | f not in subformulas[f]
 }
 
@@ -43,16 +43,26 @@ sig State {
 
 -- Finite, possibly empty sequences of states
 --   "first" should be uniquely derivable, if "next" is nonempty and linear
+--   but having an explicit first field helps visualization
 sig Trace {    
+    first: lone State,
     next: pfunc State -> State
 }
 
 inst traces_optimizer {
     next is linear
 }
-fun first[t: Trace]: lone State {
-    {s: t.next.State | s not in State.(t.next)}
+
+pred wellformed_traces {
+    all t: Trace | {
+        -- first is uniquely determined by next
+        t.first = {s: t.next.State | s not in State.(t.next)}
+        -- no cycles/repetition of state atoms (note two different "states" may share a truth table)
+        no s: State | s in s.^(t.next)
+    }
 }
+
+
 
 // TODO: last -- should be a property that for every trace, last is unique
 
@@ -114,7 +124,16 @@ pred semantics {
 
 }
 
+option verbose 5
+
 // TODO: Trace sig wasn't visible until I moved it down?
 run {
-    wellformed
+    wellformed_formulas
+    wellformed_traces
+    semantics
+    some Binary
+    some Unary
+    some Trace
+    some next
+
 } for exactly 5 Formula
