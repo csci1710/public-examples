@@ -175,13 +175,71 @@ test expect {
 --run {extendScopeExampleStrict}
 --run {not prop_extensionIsConsistent}
 
+fun ifLowerBoundedEmptyOtherwise[r: Run, s: Sig]: set Atom {
+    s in r.partialLower.isBounded => 
+        r.partialLower.atoms[s]
+    else 
+        none
+}
+
+pred scopeAndBounds[r: Run, totalScope: Scope, kb: KodkodBounds] {
+    -- "fake recursion" trick; relies on tree-shaped sig inheritance
+    all s: Sig | {
+        no s.children => {
+            -- leaf node; 
+            s in totalScope.exact => {
+                -- lower-bound is the Forge lower-bound, extended with arbitrary atoms in the upper bound as needed
+                -- This should equate to just having upper = lower; see constraints for upper bounds
+                kb.lower[s] = kb.upper[s]                
+            } else {
+                -- lower-bound is identical to the lower-bound in Forge if exists, otherwise empty
+                kb.lower[s] = ifLowerBoundedEmptyOtherwise[r, s]                
+            }
+
+            -- leaf node; upper-bound is the Forge upper-bound extended by fresh atoms as needed to fit the Scope.
+            -- This is easier to specify indirectly via constraints...
+            r.partialUpper[s] in kb.upper[s]      -- extension
+            #kb.upper[s] = totalScope.numeric[s]  -- to goal
+            all atom: kb.upper[s] | {             -- with fresh atoms only
+                all s2: Sig - s | 
+                  s2 not in s.^~children => atom not in kb.upper[s2]
+            }
+        } else {
+            -- Parent sig: now also need to include upper/lower bounds on child sigs
+            s in totalScope.exact => {                
+                kb.lower[s] = kb.upper[s]
+            } else { 
+                kb.lower[s] = r.partialLower[s] + 
+                  -- include for consistency in the model (Forge may throw an error if no full explicit upper for parent)
+                  {a: Atom | some ch: s.children | a in kb.lower[s]}
+            }
+
+            r.partialUpper[s] in kb.upper[s]      -- extension
+            {a: Atom | some ch: s.children | a in kb.upper[s]} in kb.upper[s] -- including child upper-bounds
+            #kb.upper[s] = totalScope.numeric[s]  -- to goal
+            all atom: kb.upper[s] | {             -- with fresh atoms only
+                all s2: Sig - s | 
+                  s2 not in s.^~children => atom not in kb.upper[s2]
+            }
+        }
+    }
+
+}
+
 pred generateKodkod[r: Run, kb: KodkodBounds] {
     some totalScope : Scope | {
         totalizedScope[r.scope, totalScope]
-        --leaves[r, kb]
+        scopeAndBounds[r, totalScope, kb]
     } 
     -- if no such scope exists, error
     iff not kb in ErrorBounds
+}
+
+test expect {
+    vacuityGenerate: {
+        wellformed
+        generateKodkod[Run, KodkodBounds]
+    } is sat
 }
 
 ---------------------------------------------------------------------------------------------------
