@@ -13,6 +13,9 @@
 */
 
 
+  // ? how to render transition arrows between states? 
+  // ? Call to Function() blocked by CSP: reload Sterling page
+
 ////////////////////
 // Formulas
 ////////////////////
@@ -45,7 +48,7 @@ function formula2String(f) {
   
   // TODO: this should be more sophisticated
   //   10 isn't enough for atoms
-  const CHARWIDTH = 12
+  const CHARWIDTH = 6
   const horzFormulaSize = Math.max(...formulaStrings.map(s => s.length)) * CHARWIDTH
   const formulaGridConfig = {
     grid_location :{
@@ -58,17 +61,23 @@ function formula2String(f) {
     },
     grid_dimensions:{
         y_size:formulas.length,
-        x_size:1
+        x_size:3
     }
   }
   
   const formulaGrid = new Grid(formulaGridConfig)
-  formulaStrings.forEach( (fstr,i) => 
-      {                 
-          const label = `${i}: ${fstr}`
-          formulaGrid.add({x:0, y:i}, new TextBox(label,{x:0,y:0},'black',16)); 
-      }
-  )
+  formulaStrings.forEach( (fstr,i) => {                 
+          const label = `${fstr}`
+          formulaGrid.add({x:0, y:i}, new TextBox(`${i}`,{x:0,y:0},'black',16)); 
+          formulaGrid.add({x:1, y:i}, new TextBox(label,{x:0,y:0},'black',16)); 
+  })
+  
+  formulas.forEach( (f, i) => {
+      const whereTrue = Semantics.table.join(f).tuples()
+      const label = `true in: [${whereTrue}]`
+      formulaGrid.add({x:2, y:i}, new TextBox(label,{x:0,y:0},'black',16)); 
+
+  })
   
   ////////////////////
   // TRACES
@@ -88,7 +97,7 @@ function formula2String(f) {
     },
     grid_dimensions:{
         y_size:traces.length,
-        x_size:maxTraceLength+1
+        x_size:maxTraceLength+2
     }
   }
 
@@ -127,11 +136,13 @@ function formula2String(f) {
   
   const traceGrid = new Grid(traceGridConfig)
   traceGrid.hide_grid_lines()
+
   traces.forEach( (t,traceIdx) => 
       {
+          traceGrid.add({x:0, y:traceIdx}, new TextBox(`${t}`,{x:0,y:0},'black',16)); 
           const stateShapes = trace2ShapeArray(t)
           stateShapes.forEach( (stateShape, stateIdx) => {
-            traceGrid.add({x:stateIdx, y:traceIdx}, stateShape); 
+            traceGrid.add({x:stateIdx+1, y:traceIdx}, stateShape); 
           })
           
       }
@@ -141,9 +152,6 @@ function formula2String(f) {
   stage.add(formulaGrid)
   stage.add(traceGrid)
   stage.render(svg, document)
-  
-  // ? how to render transition arrows between states? 
-
   
   
   

@@ -4,6 +4,8 @@
   TN January 2023
 */
 
+--open "ltlf_helpers.rkt"
+
 -------------------------------------------------------
 -- Formulas of LTLf 
 --   leaving out R(elease) and X_w, since they can be desugared
@@ -50,7 +52,9 @@ sig Trace {
 }
 
 inst traces_optimizer {
-    next is linear
+    -- Don't use linear; linear implies _all states_ will be used.
+    -- TODO: document this
+    next is plinear
 }
 
 pred wellformed_traces {
@@ -62,6 +66,10 @@ pred wellformed_traces {
     }
 }
 
+fun states[t: Trace]: set State {
+    -- every pre-state and every post-state in the trace
+    t.next.State + t.next[State]
+}
 
 
 // TODO: last -- should be a property that for every trace, last is unique
@@ -77,8 +85,9 @@ one sig Semantics {
     table: set Trace -> State -> Formula
 }
 
+// This trick won't always work, but it does for tree-shaped data
 pred semantics {
-    all t: Trace, s: State, f: Formula | t->s->f in Semantics.table iff {
+    all t: Trace, s: State, f: Formula | t->s->f in Semantics.table iff s in states[t] and {
         -- Atom case
         f in Atom and f in s.truths
         or
@@ -107,11 +116,13 @@ pred semantics {
             t->s->(f.left) in Semantics.table and
             t->s->(f.right) in Semantics.table
         }
+        or
         -- Or case
         f.bop = Or and {
             t->s->(f.left) in Semantics.table or
             t->s->(f.right) in Semantics.table
         }
+        or
         -- Until case (easier to express without lasso traces!)
         f.bop = Until and {
             some s2: s.*(t.next) | {
@@ -124,9 +135,12 @@ pred semantics {
 
 }
 
-option verbose 5
+-----------------------
 
-// TODO: Trace sig wasn't visible until I moved it down?
+--Example for visualization
+
+--option verbose 5
+// TODO: Trace sig wasn't visible until I moved this down?
 run {
     wellformed_formulas
     wellformed_traces
@@ -135,5 +149,12 @@ run {
     some Unary
     some Trace
     some next
+    some table
+} for exactly 5 Formula for traces_optimizer
 
-} for exactly 5 Formula
+-- The lack of a term language is troublesome. If I want to write "GF(x1 or x2)" it isn't easy,
+--   and getting the atom (likely using set comprehension) is different from quantifying for it.
+-- Also, consider traces: we'd like to assert a certain trace exists and that it satisfies a certain fmla.
+--   This "naturally" can be expressed as a `some` quantifier: some t: Trace, some f: Formula | ...
+--   but that seems inflexible and verbose.
+
