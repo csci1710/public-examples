@@ -1,5 +1,4 @@
-#lang forge
-
+#lang forge/bsl
 /*
   Tic-tac-toe example model. 
   Meant to illustrate how to serialize Forge instance output.
@@ -67,10 +66,12 @@ pred move[pre: Board, post: Board, p: Player, r: Index, c: Index] {
     no pre.places[r][c]
     p = X implies xturn[pre]
     p = O implies oturn[pre]
-	-- TRANSITION: augment post-board
-	post.places[r][c] = p
-    -- _explicit_ frame condition
+	  -- TRANSITION: augment post-board
+	  post.places[r][c] = p
+    -- TRANSITION: explicit frame condition (rest of board stays the same)
     all r2, c2: Index | (r2=r and c2=c) or post.places[r2][c2] = pre.places[r2][c2]
+    -- we could combine both using relational operators (later in course)
+    -- post.places = pre.places + (r->c->p)
 }
 
 one sig Trace {
@@ -78,10 +79,11 @@ one sig Trace {
     next: pfunc Board -> Board
 }
 pred trace {
-	-- start with empty board
-	all r, c: Index | no Trace.first.places[r][c]
+	  -- start with empty board
+	  all r, c: Index | no Trace.first.places[r][c]
     -- Potential error (easy to make when translating from Alloy)
-    --all r, c: Index | no first.places[r][c]
+    all r, c: Index | no first.places[r][c]
+    
     -- always move forward (except in last state)
     all b: Board | some Trace.next[b] implies {
         some p: Player, r, c: Index | 
@@ -90,12 +92,15 @@ pred trace {
 }
 
 --------------------
-
-option verbose 3
+--option verbose 5
 run {
+    -- find me an instance illustrating a trace of tic-tac-toe
     trace
-	-- end in a winning board for X
-    some winningb: Board | no Trace.next[winningb] and winning[winningb, X]
+	  -- that also ends in a winning board for X
+    some winningb: Board | { 
+      no Trace.next[winningb] 
+      winning[winningb, X]
+    }
 } for 9 Board, 3 Index, 2 Player for {next is linear}
 
 -- Example instance to illustrate using a partial instance in forge/core

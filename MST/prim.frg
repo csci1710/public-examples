@@ -4,11 +4,13 @@
 Prim's algorithm in Forge
   Tim 2020, revised Nov 2021
   Made public December 2022
+  Comments added to demo relational vs. Froglet in January 2023
 */
 
 -- In 2020, this needed to be MiniSat or MiniSatProver or the solver
 --   ran out of memory. But that was the full "comparison" model.
-option solver SAT4J
+--option solver MiniSatProver -- SAT4J
+option verbose 2
 
 -------------------------------------------------------------
 -- Always have a specific weighted directed graph in the background
@@ -19,15 +21,37 @@ sig Node {
 }
 
 pred wellformedgraph {
-    all n, m: Node | lone edges[n][m] -- no double-edges
-    all n, m: Node | some edges[n][m] implies sum[edges[n][m]] >= 0 -- no negative weights
-    all n, m: Node | n.edges[m] = m.edges[n] -- symmetric
-    no iden & edges.Int -- no self-loops
+    -- no double-edges
+    all n, m: Node | lone edges[n][m] 
+    
+    -- no negative weights
+    all n, m: Node | some edges[n][m] implies edges[n][m] >= 0 
+    
+    -- symmetric
+    -- all n, m: Node | n.edges[m] = m.edges[n] 
+    edges.Int = ~(edges.Int)
+
+    -- no self-loops
+    no (iden & edges.Int)
+}
+
+pred symmetric_1 { 
+    edges.Int = ~(edges.Int)
+}
+pred symmetric_2 {
+    all n, m: Node | n.edges[m] = m.edges[n] 
+}
+
+test expect {
+    {wellformedgraph implies {symmetric_1 iff symmetric_2}} is theorem
 }
 
 pred difflengthedges {
     -- Find a graph where all the edges are different lengths
-    all n1, m1, n2, m2: Node | ((n1 != n2 or m1 != m2) and some n1.edges[m1]) implies n1.edges[m1] != n2.edges[m2]                                                                                      
+    all disj n1, n2: Node | all disj m1, m2: Node | { 
+        -- some n1.edges[m1] implies ...
+        n1->m1 in edges.Int implies n1.edges[m1] != n2.edges[m2]                                                                                      
+    }
 }
 
 -------------------------------------------------------------
@@ -41,8 +65,9 @@ sig Prim {
 }
 
 pred prim_init[s: Prim] {
-    -- Initialize to an arbitrary node
-    some n: Node | s.pnodes = n
+    -- Initialize to an arbitrary node; no edges in tree yet
+    --some n: Node | s.pnodes = n 
+    one s.pnodes -- alternative
     no s.ptree
 }
 
@@ -51,7 +76,7 @@ pred extendPrim[pre, post: Prim] {
     -- candidatesWithWeights : Node -> Int <-- would like to make this explicit
     let candidatesWithWeights = ((Node-pre.pnodes) -> Int) & pre.pnodes.edges |
     -- Find the cheapest cost among all candidates
-    let minWeight = sing[min[candidatesWithWeights[Node]]] |
+    let minWeight = min[candidatesWithWeights[Node]] |
     -- Find the candidates who share that cheapest cost
     let minWeightCandidates = candidatesWithWeights.minWeight |
         some m, n: Node | { 
@@ -98,7 +123,8 @@ run runPrimComplete for 5 Node, 5 Prim, 5 Int for {pnext is linear}
 -------------------------------------------------------------
 
 inst wikipedia {
-  Node = `A + `B + `C + `D
+  Node in `A + `B + `C + `D
+  Node ni `A + `B
   edges = `A->`B->2 + `A->`D->1 + `B->`D->2 + `C->`D->3
 }
 

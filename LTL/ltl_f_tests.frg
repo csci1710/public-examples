@@ -2,6 +2,7 @@
 
 open "ltl_f.frg"
 
+-- always { eventually { p or q}}
 one sig GFPORQ, FPORQ extends Unary {}
 one sig PORQ extends Binary {}
 one sig P, Q extends Atom {}

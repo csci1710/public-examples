@@ -30,7 +30,7 @@ pred winV[b: Board, p: Player] {
 }
 
 pred winD[b: Board, p: Player] {
-  A->A + B->B + C->C in b.places.p 
+  A->A + B->B + C->C in p.places.b
   or
   A->C + B->B + C->A in b.places.p 
 }
