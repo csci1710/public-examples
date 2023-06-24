@@ -51,4 +51,4 @@ I generated 6 CNF files:
 
 ## Notes
 
-I have confirmed that these 6 examples produce the expected SAT or UNSAT result using `z3 -dimacs <filename>`. 
+I have confirmed that these 6 `.cnf` examples produce the expected SAT or UNSAT result using `z3 -dimacs <filename>`. However, since I don't have a solver that accept s-expressions, I have not validated the result of translating these to `.scnf` format.
