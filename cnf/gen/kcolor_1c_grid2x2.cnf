@@ -1,8 +1,13 @@
-c description: Graph 1-Colorability of <cnfgen.graphs.Graph object at 0x0000028D92539AF0>
+c description: Graph 1-Colorability of <cnfgen.graphs.Graph object at 0x109ed8510>
 c generator: CNFgen (0.9.2)
 c copyright: (C) 2012-2022 Massimo Lauria <massimo.lauria@uniroma1.it>
 c url: https://massimolauria.net/cnfgen
-c command line: cnfgen -o kcolor_1c_grid2x2.cnf kcolor 1 grid 2 2
+c command line: cnfgen --varnames -o kcolor_1c_grid2x2.cnf kcolor 1 grid 2 2
+c
+c varname 1 x_{1,1}
+c varname 2 x_{2,1}
+c varname 3 x_{3,1}
+c varname 4 x_{4,1}
 c
 p cnf 4 8
 1 0

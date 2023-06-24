@@ -2,7 +2,18 @@ c description: Counting Principle: 5 divided in parts of size 2.
 c generator: CNFgen (0.9.2)
 c copyright: (C) 2012-2022 Massimo Lauria <massimo.lauria@uniroma1.it>
 c url: https://massimolauria.net/cnfgen
-c command line: cnfgen --output count_5M2p.cnf count 5 2
+c command line: cnfgen --varnames --output count_5M2p.cnf count 5 2
+c
+c varname 1 p_{1,2}
+c varname 2 p_{1,3}
+c varname 3 p_{1,4}
+c varname 4 p_{1,5}
+c varname 5 p_{2,3}
+c varname 6 p_{2,4}
+c varname 7 p_{2,5}
+c varname 8 p_{3,4}
+c varname 9 p_{3,5}
+c varname 10 p_{4,5}
 c
 p cnf 10 35
 -1 -2 0
