@@ -12,9 +12,7 @@ The documentation and output don't detail the exact variable mapping, so I've ex
 
 #### [Pigeonhole](https://github.com/MassimoLauria/cnfgen/blob/master/cnfgen/families/pigeonhole.py)
 
-```
 The formula is encoded with variables `p_{i,j}` for `i` in `[m]` and `j` in `[n]` where the intended meaning is that `p_{i,j}` is `True` when pigeon `i` flies into hole `j`.
-```
 
 #### [K-coloring of graphs](https://github.com/MassimoLauria/cnfgen/blob/master/cnfgen/families/coloring.py)
 
@@ -35,7 +33,7 @@ This repo includes the original CNF files (`.cnf`) along with S-expression versi
 ```
 where each clause is a list of literals of the form: `(not (var <variable parameters>))` or `(var <variable parameters>)`. Parameters are extracted from the DIMACS output with `--varnames` on.
 
-E.g., instead of a clause that looks like `(1 2 -3)`, if the `cnf` file contains a variable mapping where `1`, `2`, and `3` mean `p_{1,2}`, `p_{3,4}` and `p_{5,6}` respectively, the clause will be `((var 1 2) (var 3 4) (var 5 6))`  
+E.g., instead of a clause that looks like `(1 2 -3)`, if the `cnf` file contains a variable mapping where `1`, `2`, and `3` mean `p_{1,2}`, `p_{3,4}` and `p_{5,6}` respectively, the clause will be `((var 1 2) (var 3 4) (var 5 6))`. 
 
 I've included the rough script used to convert (`translate.py`). 
 
