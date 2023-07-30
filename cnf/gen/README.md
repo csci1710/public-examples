@@ -14,6 +14,8 @@ The documentation and output don't detail the exact variable mapping, so I've ex
 
 The formula is encoded with variables `p_{i,j}` for `i` in `[m]` and `j` in `[n]` where the intended meaning is that `p_{i,j}` is `True` when pigeon `i` flies into hole `j`.
 
+**Note well: the use of `p` in the above is taken from the cnfgen comments. It is unconnected to the CNF problem description in the first line of the output, which follows DIMACS in using `p cnf X Y` to define the boolean problem.**
+
 #### [K-coloring of graphs](https://github.com/MassimoLauria/cnfgen/blob/master/cnfgen/families/coloring.py)
 
 The variables are of the form `x_{v,c}` where `v` is a vertex and `c` a color. 
@@ -31,7 +33,10 @@ This repo includes the original CNF files (`.cnf`) along with S-expression versi
  clauses
  ...)
 ```
-where each clause is a list of literals of the form: `(not (var <variable parameters>))` or `(var <variable parameters>)`. Parameters are extracted from the DIMACS output with `--varnames` on.
+
+The first line, `p cnf X Y` is carried over from DIMACS directly. The leading character `p` is used to denote a **p**roblem definition.
+
+Each clause is a list of literals of the form: `(not (var <variable parameters>))` or `(var <variable parameters>)`. Parameters are extracted from the DIMACS output with `--varnames` on.
 
 E.g., instead of a clause that looks like `(1 2 -3)`, if the `cnf` file contains a variable mapping where `1`, `2`, and `3` mean `p_{1,2}`, `p_{3,4}` and `p_{5,6}` respectively, the clause will be `((var 1 2) (var 3 4) (var 5 6))`. 
 
