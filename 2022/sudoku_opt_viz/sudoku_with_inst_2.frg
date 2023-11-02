@@ -5,6 +5,12 @@
   VERSION 3: extending the optimizer instance a bit
 */
 
+-- Pre-load the visualizer script in Sterling
+option run_sterling "sudoku.js"
+-- For ease of debugging and demoing, use a constant Forge server port
+option sterling_port 17100
+
+
 abstract sig BoardState {
     board: pfunc Int -> Int -> Int
 }
