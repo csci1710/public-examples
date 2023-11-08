@@ -1,7 +1,9 @@
 const animal1 = Goat
 const url1 = 'https://i.pinimg.com/originals/f8/01/e4/f801e4c0be2ef6505f099093a15ae2d8.jpg'
 const animal2 = Wolf
-const url2 = 'https://www.how-to-draw-funny-cartoons.com/images/wolf-clipart-004.png'
+
+// Updated this vs. 2023
+const url2 = 'https://media.istockphoto.com/id/1166548747/vector/cartoon-wolf-sitting-on-white-background.webp?s=1024x1024&w=is&k=20&c=peDCL67jBngdR6GPBkCg3lryW6Z2NLgVMX4VJGzYVmY='
 
 const boat_url = 'https://www.pngkey.com/png/detail/487-4876007_canoe-paddle-clipart-yellow-boat-clip-art-row.png'
 const arrow_url = 'http://clipart-library.com/images/pcodGR6ei.png'
