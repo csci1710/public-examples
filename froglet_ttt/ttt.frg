@@ -82,7 +82,7 @@ pred trace {
 	  -- start with empty board
 	  all r, c: Index | no Trace.first.places[r][c]
     -- Potential error (easy to make when translating from Alloy)
-    all r, c: Index | no first.places[r][c]
+    -- all r, c: Index | no first.places[r][c]
     
     -- always move forward (except in last state)
     all b: Board | some Trace.next[b] implies {
