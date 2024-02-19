@@ -55,14 +55,17 @@ pred wellformed {
 }
 
 -- Include this to force scales to be diatonic
--- (Not the most efficient way to phrase this...)
 pred diatonic {
+  -- expected number of whole and half-steps
+  -- (Not the most efficient way to phrase this...)
   #W = 5
   #H = 2  
+  -- Half steps are separated
   -- We'll be able to express this much more consisely in Relational Forge,
-  -- but for now, let's stick to Froglet:
-  --all s: H, w: W | s.next != w  //and next[next[s]] != w
-  -- TODO
+  -- but for now, let's stick to Froglet. "No half step's successor or twice 
+  -- successor is another half step"
+  all h1: H, h2: H | h1.next != h2 and h1.next.next != h2
+  
 }
 
 --------------------------------------------------------------------------------

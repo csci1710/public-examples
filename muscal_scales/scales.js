@@ -1,9 +1,10 @@
-require('d3', 'tone')
+require('d3')
+require('tone')
 
 // Written by Mia Santomauro with advice from Tim Nelson in 2021.
 // Minor changes to match 2024 Forge by Tim in February, 2024.
 
-// NOTE WELL: the require line MUST be the first line in the script, since 
+// NOTE WELL: the require lines MUST be the first lines in the script, since 
 // this is an "old-style" custom visualizer. It is not an actual JavaScript require, 
 // but a directive to Sterling, listing modules to load from the JsDelivr CDN.
 
