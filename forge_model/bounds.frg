@@ -1,12 +1,10 @@
 #lang forge
 
 /*
-    Model of how numeric bounds and partial instances get translated to partial-instance bounds in Forge
-    For now, the model is restricted to only _Sigs_, not also fields. We're also only concerned with explicit
-    partial instances, not arbitrary formulas (as in Alcino's unpublished work).
-
-    - omitted: `one` sigs and their effect on bounds
-    - omitted: `in` subset sigs (not supported in Forge, anyway)
+    Model of how numeric bounds and partial instances get translated 
+    to partial-instance bounds in Forge. For now, the model is restricted 
+    to only _Sigs_, not also fields. We are also not modeling `in` subset 
+    sigs, which are not supported in Forge.
 */
 
 abstract sig Modifier {}
@@ -17,13 +15,11 @@ sig Sig {
     children: set Sig
 }
 
--- TODO: 11/20/22: add "set Atom" here and the error is a *parse* error, shown in the wrong place in VSCode
-
 sig Atom {}
--- We'd really like to write "partialUpper: pfunc Sig -> set Atom", since that would allow the function to not 
--- denote on a given sig, indicating no partial-instance bound for that sig, _distinctly from_ that bound 
--- existing and containing the empty set. But we can't write that in Forge as of November 2022. 
--- Instead, separate into two fields:
+-- We'd really like to write "partialUpper: pfunc Sig -> set Atom", since that would allow 
+-- the function to not denote on a given sig, indicating no partial-instance bound for that 
+-- sig, _distinctly from_ that bound existing and containing the empty set. But we can't 
+-- write that in Forge as of now. Instead, separate into two fields:
 sig PartialInst {    
     atoms: set Sig -> Atom,
     isBounded: set Sig
@@ -37,7 +33,7 @@ sig Scope {
 }
 
 fun DEFAULT_SCOPE: Int { 
-    3
+    4
 }
 
 -- Assumption: all Sigs are involved in the run
@@ -66,8 +62,9 @@ pred wellformed {
         some r.partialUpper iff some r.partialLower    
     }
 
-    -- a partial instance only contains tuples for a sig if it bounds that sig (mostly for readability)
-    all pi: PartialInst | pi.atoms.Atom in pi.isBounded -- ... but a bounded sig may be empty (hence in, not =)
+    -- a partial instance only contains tuples for a sig if it bounds that sig 
+    -- (mostly for readability) but a bounded sig may be empty (hence in, not =)
+    all pi: PartialInst | pi.atoms.Atom in pi.isBounded 
 
 }
 
@@ -273,7 +270,7 @@ pred correctness[r: Run, kb: KodkodBounds] {
         -- child sigs are disjoint:
         --   [This is NOT something we can always guarantee by bound; sometimes we need to add additional constraints]
 
-        -- Bounds assigned are always consisted with modifiers (one, abstract) if applicable
+        -- Bounds assigned are always consistent with modifiers (one, abstract) if applicable
         all s: Sig | One in s.modifiers => {
             -- Only ever one thing 
             kb.upper[s] = kb.lower[s]
