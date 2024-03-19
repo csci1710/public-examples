@@ -8,6 +8,9 @@ Prim's algorithm in Forge
   For visualization, use Table View and open the "Time" side drawer to step
   through the trace; you should see a new Node being added to Prim.pnodes every step.
   
+  Note that this model will take around a minute to run. Some of the 
+  (passing) tests are somewhat inefficient.
+
 */
 
 -------------------------------------------------------------
@@ -25,8 +28,10 @@ pred wellformedgraph {
     -- no negative weights
     all n, m: Node | some edges[n][m] implies edges[n][m] >= 0 
     
-    -- symmetric
-    edges.Int = ~(edges.Int)
+    -- This isn't strong enough (symmetric, without regard to weights):
+    -- edges.Int = ~(edges.Int)
+    -- This is (symmetric, same weights required):
+    all n, m: Node | edges[n][m] = edges[m][n]
 
     -- no self-loops
     no (iden & edges.Int)
@@ -34,6 +39,11 @@ pred wellformedgraph {
     -- connected (or else it cannot be spanned)
     all disj n, m: Node | n in m.^(edges.Int)
 }
+
+-- Demo checking that the weight-aware symmetry constraints subsumes the other.
+pred test_old { edges.Int = ~(edges.Int) }
+pred test_new { all n, m: Node | edges[n][m] = edges[m][n] }
+assert test_new is sufficient for test_old for 5 Node, 5 Int
 
 -------------------------------------------------------------
 -- Prim's algorithm
@@ -84,7 +94,7 @@ pred prim_step[m, n: Node] {
 pred prim_doNothing {
     -- GUARD
     -- we cannot make progress using a Prim step -- DO NOT CONFUSE this with prim_step
-    all m, n: Node | not prim_step_enabled[m, n]
+    all m_no, n_no: Node | not prim_step_enabled[m_no, n_no]
     -- ACTION
     Prim.pnodes' = Prim.pnodes
     Prim.ptree' = Prim.ptree
@@ -111,7 +121,7 @@ pred prim_trace {
 -- View a run!
 -------------------------------------------------------------
 
-run prim_trace for exactly 5 Node, 5 Int
+--run prim_trace for exactly 5 Node, 5 Int
 
 -------------------------------------------------------------
 -- Model Validation
@@ -122,11 +132,32 @@ run prim_trace for exactly 5 Node, 5 Int
 -- check that certain shapes are possible *AND* that Prim's can run on those shapes.
 -- (Doing both at once, since prim_trace includes wellformedgraph)
 
--- Find a graph where all the edges are different lengths
+-- Find a graph where all the edges are different lengths. 
+-- A broken version of this might be:
+pred difflengthedges_broken {
+    all disj n1, n2: Node | all disj m1, m2: Node | { 
+        (n1->m1 in edges.Int implies n1.edges[m1] != n2.edges[m2])
+    }
+}
+-- Note how this breaks. Consider what happens if n1=m2 and m1=n2.
+
+-- Instead, here are two alternative fixes (of many):
 pred difflengthedges {
     all disj n1, n2: Node | all disj m1, m2: Node | { 
-        n1->m1 in edges.Int implies n1.edges[m1] != n2.edges[m2]                                                                                      
+        (n1 != m2) implies
+        (n1->m1 in edges.Int implies n1.edges[m1] != n2.edges[m2])
     }
+}
+pred difflengthedges_2 {
+    all disj n1, n2: Node | all disj m1, m2: Node | { 
+        #(n1 + m1 + n2 + m2) >= 3 implies 
+          (n1->m1 in edges.Int implies n1.edges[m1] != n2.edges[m2])
+    }
+}
+// Are 2 of these options equivalent? If yes, our confidence increases:
+test expect {
+  {wellformedgraph implies {difflengthedges iff difflengthedges_2}}
+    for 5 Node is theorem
 }
 
 -- Find a graph where all possible edges are present (at some weight)
@@ -138,6 +169,9 @@ pred complete_graph {
 
 -- Run most of these on arbitrary 5-node graphs to force Forge to try more realistic cases.
 test expect {    
+   localize_a: {wellformedgraph and difflengthedges} 
+      for exactly 5 Node, 5 Int is sat
+
     -- Make sure we can generate and run Prim's on graphs with different/same weights
     prims_difflengths_5: {prim_trace and difflengthedges} 
       for exactly 5 Node, 5 Int is sat

@@ -65,7 +65,7 @@ pred binary_search_tree_v2 {
 }
 
 -- Get examples of the difference between the two. 
---bstdiff: run {not { binary_search_tree_v1 iff binary_search_tree_v2}} for 5 Node 
+-- bstdiff: run {not { binary_search_tree_v1 iff binary_search_tree_v2}} for 5 Node 
 -- These definitely not the same. Let's explore the impact of the difference.
 
 ----------------------------------------------------------------------------------
@@ -138,6 +138,7 @@ run {
   binary_search_tree_v1 -- use first invariant version
   searchTrace           -- do a search descent
   not stop              -- don't *immediately* succeed 
+  not next_state stop   -- don't succeed in 1 descent, either
   SearchState.target in Node.key -- the target is present
 } for exactly 8 Node
 -- And the same using version 2:
@@ -146,6 +147,7 @@ run {
   binary_search_tree_v2 -- use second invariant version
   searchTrace           -- do a search descent
   not stop              -- don't *immediately* succeed 
+  not next_state stop   -- don't succeed in 1 descent, either
   SearchState.target in Node.key -- the target is present
 } for exactly 8 Node    -- don't *immediately* succeed 
 
