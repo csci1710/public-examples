@@ -9,6 +9,11 @@
   a combination of:
     (1) locations in the source; AND 
     (2) constraints that aren't directly mapped back.)
+
+  If you're using the VSCode extension, a core will be underlined in red. 
+  If you're _not_ using the VSCode extension, you'll see the location info in the terminal. 
+  Note that, if you're running in VSCode, you may need to click "continue" to see the core
+    for a "run" command.
 */
 
 ----------------------------------------------------------------------------------
