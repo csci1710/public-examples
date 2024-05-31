@@ -32,7 +32,7 @@ fun values: set Int {
     1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9
 }
 
-pred solution[s: PuzzleState] {
+pred solution[s: BoardState] {
     -- ** Rows and Columns **
     -- don't use #... = 9 here; instead something like:
     all r: values | s.board[r][Int] = values
@@ -102,6 +102,7 @@ pred puzzle1 {
       (8 -> 2 -> 3) + (8 -> 4 -> 4) +
       (9 -> 2 -> 2) + (9 -> 5 -> 8) + (9 -> 7 -> 7) + (9 -> 9 -> 3)
 }
+
 run {
     solve
     puzzle1

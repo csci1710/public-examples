@@ -233,11 +233,69 @@ pred current_is_tree {
 pred req_eventually_is_spanning_tree {
     eventually {current_is_spanning and current_is_tree }
 }
-assert prim_trace is sufficient for req_eventually_is_spanning_tree
-  for 5 Node, 5 Int
+// assert prim_trace is sufficient for req_eventually_is_spanning_tree
+//   for 5 Node, 5 Int
+
+-------------------------------------------------------------------------------
 
 -- (3) the spanning tree generated is minimal 
 
 -- Minimality is much harder to express for the moment. The original model
 -- this was taken from ran Kruskal's algorithm too, and compared the total
 -- weight of the results; this is a variation on PBT!
+
+-------------------------------------------------------------------------------
+
+-- Let's try. First, we need to pull the separate criteria into a predicate we can check _other_ trees on
+pred isSpanningTree[t: set Node -> Node] {
+  -- is spanning:
+  all disj n1, n2: Node | n1 in n2.^t
+  -- is tree:
+  all disj n1, n2: Node | n2 in n1.t implies {
+    n2 not in n1.^(t - (n1->n2 + n2->n1))
+  }
+}
+-- and we need to measure the weight of a given edge set: 
+fun totalWeight[eset: set Node -> Node]: one Int {
+  sum n1: Node | sum n2: Node | {
+    n1->n2 in eset =>   edges[n1][n2]
+                   else 0
+  }
+}
+/*
+pred current_is_minimal_st {
+  -- Current state of Prim's is a spanning tree
+  isSpanningTree[Prim.ptree]  
+  -- For all _other_ trees... (FORGE WILL NOT SUPPORT THIS SYNTAX!)
+  all t2: set Node -> Node | {
+    isSpanningTree[t2] implies totalWeight[t2] <= totalWeight[Prim.ptree]
+  }
+}
+*/
+
+-- If we tried to run `current_is_minimal_st` we would run into a higher-order-quantification issue. 
+-- Because we'd be telling Forge to search for a trace where, at some point, _ALL_ spanning trees... 
+-- test expect { hoq_issue: { prim_trace and eventually {current_is_minimal_st}} for 5 Node, 5 Int is sat }
+
+
+-- But verification is different. What happens if we try to flip the scenario, and search for a
+-- counterexample? 
+
+one sig Helper {
+  otherTree: set Node -> Node
+}
+pred counter_example_to_req_prim_is_minimal {
+  prim_trace 
+  eventually { 
+    isSpanningTree[Helper.otherTree]
+    totalWeight[Helper.otherTree] > 0 -- avoid overflow
+    totalWeight[Prim.ptree] > 0       -- avoid overflow
+    all n1, n2: Node | n1->n2 in edges.Int implies edges[n1][n2] <= 2
+    totalWeight[Helper.otherTree] < totalWeight[Prim.ptree]
+  }
+}
+test expect {
+  no_ce: {counter_example_to_req_prim_is_minimal} for 5 Node, 5 Int is unsat
+}
+
+
