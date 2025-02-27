@@ -38,11 +38,15 @@ run {
     -- replaced with trace-structure constraints below
     one last_state: State | no Trace.next[last_state]
     no s: State | s in s.^(Trace.next)
+    all s: State - Trace.first | s in Trace.first.^(Trace.next) 
 
     -- SMT-SPECIFIC: unbounded solver, disallow stopping after 1 state
-    -- This performs poorly, even at #State = 2
+    -- This performs poorly. There is a slight delay even at #State = 2.
     #State = 2
+    -- But at #State = 3, it takes >10min to solve (may diverge).
+    -- #State = 3
+    -- And at #State = 4, I can run it for hours without getting an instance.
+    -- #State = 4
 
     trace
 } 
-
